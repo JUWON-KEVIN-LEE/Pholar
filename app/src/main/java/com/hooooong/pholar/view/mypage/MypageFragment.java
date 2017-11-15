@@ -1,14 +1,24 @@
 package com.hooooong.pholar.view.mypage;
 
+<<<<<<< HEAD
+=======
+import android.content.Context;
+import android.content.Intent;
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+<<<<<<< HEAD
+=======
+import android.widget.ImageButton;
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -20,6 +30,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.hooooong.pholar.R;
 import com.hooooong.pholar.model.PostThumbnail;
+import com.hooooong.pholar.view.sign.SigninActivity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +55,10 @@ public class MypageFragment extends Fragment {
         f.setArguments(args);
         return f;
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
     String name, path;
     public void readBundle(Bundle bundle) {
         if(bundle != null) {
@@ -52,17 +67,42 @@ public class MypageFragment extends Fragment {
         }
     }
 
+<<<<<<< HEAD
     CircleImageView civ_profile;
     TextView tv_name;
+=======
+    Context context;
+    RecyclerView rv;
+    CircleImageView civ_profile;
+    TextView tv_name, posting;
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // instantiate view
         View view = inflater.inflate(R.layout.fragment_mypage, container, false);
+<<<<<<< HEAD
 
         // setting name and path
         readBundle(getArguments());
 
+=======
+        context = container.getContext();
+        // setting name and path
+        readBundle(getArguments());
+        posting = view.findViewById(R.id.posting);
+
+        ImageButton btn = view.findViewById(R.id.signout_btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(context, SigninActivity.class);
+                startActivity(intent);
+                getActivity().finish();
+            }
+        });
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
         // profile setting
         civ_profile = view.findViewById(R.id.civ_profile);
         if(path != null)
@@ -73,10 +113,17 @@ public class MypageFragment extends Fragment {
             tv_name.setText(name);
 
         // recyclerview
+<<<<<<< HEAD
         RecyclerView rv = view.findViewById(R.id.post_recycler_view);
+=======
+        rv = view.findViewById(R.id.post_recycler_view);
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
         adapter = new MypageAdapter(container.getContext());
         rv.setAdapter(adapter);
-        rv.setLayoutManager(new GridLayoutManager(container.getContext(), 3));
+        if(map!=null && map.size() != 0)
+            rv.setLayoutManager(new GridLayoutManager(context, 3));
+        else
+            rv.setLayoutManager(new LinearLayoutManager(context));
 
         return view;
     }
@@ -99,7 +146,7 @@ public class MypageFragment extends Fragment {
         userRef = database.getReference("user");
 
         //TODO child 자리에 user uid 값 들어가야 한다!
-        userRef.child("xWxHOdz9FcM4I3sbCKf5ubj5pWW2").child("post_thumbnail").addValueEventListener(new ValueEventListener() {
+        userRef.child(mAuth.getCurrentUser().getUid()).child("post_thumbnail").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 map = new HashMap<>();
@@ -110,6 +157,10 @@ public class MypageFragment extends Fragment {
                     thumbnail.count_picture = (String) item.child("count_picture").getValue();
                     map.put(thumbnail.post_id, thumbnail);
                 }
+                if(map.size() != 0) {
+                    posting.setText("포스트"+map.size());
+                    rv.setLayoutManager(new GridLayoutManager(context, 3));
+                }
                 adapter.dataRefreshing(map);
             }
 
@@ -118,5 +169,9 @@ public class MypageFragment extends Fragment {
 
             }
         });
+    }
+
+    public interface IFinish {
+        void fin();
     }
 }

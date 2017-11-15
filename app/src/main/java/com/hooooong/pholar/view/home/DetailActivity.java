@@ -3,19 +3,17 @@ package com.hooooong.pholar.view.home;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -52,8 +50,13 @@ public class DetailActivity extends AppCompatActivity implements PostDAO.ICallba
     private EditText commentContent;
     private Toolbar toolbar;
     private TextView commentDate;
+    private String flag;
 
     private FirebaseUser mUser;
+    private TextView textLikeCount;
+    private TextView textCommentCount;
+    private ImageView imgLike;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,10 +67,29 @@ public class DetailActivity extends AppCompatActivity implements PostDAO.ICallba
         recyclerView.setAdapter(new CustomRecyclerViewAdapter());*/
 
         post_id = getIntent().getStringExtra("post_id");
-        mUser = FirebaseAuth.getInstance().getCurrentUser();
+        flag = getIntent().getStringExtra("flag");
+
+        if ("comment".equals(flag)) {
+            goComment();
+        } else {
+            mUser = FirebaseAuth.getInstance().getCurrentUser();
+            initView();
+            init();
+            initListener();
+        }
         initView();
-        init();
     }
+
+    private void initListener() {
+        imgLike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PostDAO.getInstance().onLikeClick(post_id, FirebaseAuth.getInstance().getCurrentUser());
+
+            }
+        });
+    }
+
 
     private void init() {
         postDAO = PostDAO.getInstance();
@@ -98,8 +120,6 @@ public class DetailActivity extends AppCompatActivity implements PostDAO.ICallba
         setDataToScreen(post);
 
         String user_id = post.user.user_id;
-//        Log.e("heepie1", "getSinglePostFromFirebaseDB: " + user_id);
-//        userDAO.readByUserId(DetailActivity.this, user_id);
     }
 
     private void setDataToScreen(Post post) {
@@ -111,65 +131,63 @@ public class DetailActivity extends AppCompatActivity implements PostDAO.ICallba
         String nickname = post.user.nickname;
         String profile_path = post.user.profile_path;
 
-
         Glide.with(this)
                 .load(profile_path)
                 .into(detailProfile);
 
         detailId.setText(nickname);
         detailContent.setText(content);
-        detailTime.setText(date);
+        detailTime.setText(DateUtil.calculateTime(date));
+
+//        Log.e("heepie3", post.comment.size() + "  " + post.like.size());
+
+        if (post.comment == null)
+            textCommentCount.setText(0 + "");
+        else
+            textCommentCount.setText(post.comment.size() + "");
+        if (post.like == null) {
+            textLikeCount.setText(0 + "");
+            imgLike.setImageResource(R.drawable.ic_favorite_border);
+        }
+        else {
+            textLikeCount.setText(post.like.size() + "");
+            // Like 가 있으면
+            // 현재 Login 한 사람의 ID
+            String user_id = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            if(post.like.containsKey(user_id)){
+                imgLike.setImageResource(R.drawable.ic_favorite);
+            }else{
+                imgLike.setImageResource(R.drawable.ic_favorite_border);
+            }
+        }
 
         setPhotoToView(photoList);
-        setCommentToView(commentList);
-
-        commentWriterId.setText(mUser.getDisplayName());
-        Glide.with(this)
-                .load(mUser.getPhotoUrl())
-                .into(detailCommenterProfile);
     }
 
-    private void setPhotoToView (List<Photo> photoList) {
-        for (int i = 0; i < photoList.size(); i++) {
-            View view = LayoutInflater.from(this).inflate(R.layout.item_read_photo, null);
-            ImageView photoView = view.findViewById(R.id.photoView);
-            TextView textComment = view.findViewById(R.id.textPhotoComment);
-
-            Log.e("heepie1", photoList.get(i).getImgPath() + "");
-
-            Glide.with(this)
-                    .load(photoList.get(i).storage_path)
-                    .into(photoView);
-
-            if (!"".equals(photoList.get(i).photo_explain)) {
-                textComment.setVisibility(View.VISIBLE);
-                textComment.setText(photoList.get(i).photo_explain);
+    private void setPhotoToView(List<Photo> photoList) {
+        if(detailPicLayout.getChildCount() != photoList.size()) {
+            for (int i = 0; i < photoList.size(); i++) {
+                View view = LayoutInflater.from(this).inflate(R.layout.item_read_photo, null);
+                ImageView photoView = view.findViewById(R.id.photoView);
+                TextView textComment = view.findViewById(R.id.textPhotoComment);
+                Glide.with(this)
+                        .load(photoList.get(i).storage_path)
+                        .into(photoView);
+                if (!"".equals(photoList.get(i).photo_explain)) {
+                    textComment.setVisibility(View.VISIBLE);
+                    textComment.setText(photoList.get(i).photo_explain);
+                }
+                detailPicLayout.addView(view);
             }
-
-            detailPicLayout.addView(view);
-        }
-    }
-
-    private void setCommentToView (List<Comment> commentList) {
-        for (int j=0; j<commentList.size(); j=j+1) {
-            View view = LayoutInflater.from(this).inflate(R.layout.item_read_comment, null);
-            CircleImageView imageCommentProfile = view.findViewById(R.id.comment_writer_profile);
-            TextView textCommentId = view.findViewById(R.id.comment_writer_id);
-            TextView textCommentContext = view.findViewById(R.id.comment_content);
-            TextView textCommentDate = view.findViewById(R.id.comment_date);
-
-            textCommentId.setText(commentList.get(j).nickname);
-            textCommentContext.setText(commentList.get(j).comment_content);
-            textCommentDate.setText(commentList.get(j).comment_date);
-
-            Glide.with(this)
-                    .load(commentList.get(j).profile_path)
-                    .into(imageCommentProfile);
-            detailCommentLayout.addView(view);
         }
     }
 
     private void initView() {
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
         detailProfile = findViewById(R.id.detail_profile);
         detailId = findViewById(R.id.detail_id);
         detailTime = findViewById(R.id.detail_time);
@@ -181,31 +199,32 @@ public class DetailActivity extends AppCompatActivity implements PostDAO.ICallba
         commentContent = findViewById(R.id.comment_content);
         detailCommentLayout = findViewById(R.id.detail_pic_layout);
         commentDate = findViewById(R.id.comment_date);
+        textLikeCount = findViewById(R.id.detail_textLikeCount);
+        textCommentCount = findViewById(R.id.detail_textCommentCount);
+        imgLike = (ImageView) findViewById(R.id.imgLike);
     }
 
-    public void clickedRegisterComment(View view) {
-        String comment_content = commentContent.getText().toString();
 
-        if("".equals(comment_content))
-            Toast.makeText(this, "댓글을 입력해주세요.", Toast.LENGTH_SHORT).show();
-        else {
-            Comment comment = new Comment();
-            comment.nickname = mUser.getDisplayName();
-            comment.profile_path = mUser.getPhotoUrl().toString();
-            comment.comment_content = comment_content;
-            comment.comment_date = DateUtil.currentYMDHMSDate();
-            post.getComment().add(comment);
-            postDAO.updatePost(post);
-            Toast.makeText(this, "id: " + post.post_id, Toast.LENGTH_SHORT).show();
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
         }
-
-
+        return super.onOptionsItemSelected(item);
     }
 
-    public void test(View view) {
-        Intent intent = new Intent(this, CommentActivity.class);
-        intent.putParcelableArrayListExtra("commentList",(ArrayList<Comment>)post.getComment());
 
+    public void goCommentActivity(View view) {
+        goComment();
+    }
+
+    private void goComment() {
+        Intent intent = new Intent(this, CommentActivity.class);
+        intent.putParcelableArrayListExtra("commentList", new ArrayList<Comment>(post.getComment()));
+        intent.putExtra("post_id", post_id);
         startActivity(intent);
     }
 

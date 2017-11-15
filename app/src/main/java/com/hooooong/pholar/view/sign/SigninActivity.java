@@ -1,6 +1,10 @@
 package com.hooooong.pholar.view.sign;
 
 import android.content.Intent;
+<<<<<<< HEAD
+=======
+import android.content.SharedPreferences;
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -73,9 +77,6 @@ public class SigninActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
-
                 Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
@@ -140,6 +141,7 @@ public class SigninActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             Toast.makeText(SigninActivity.this, "로그인이 완료되었습니다.", Toast.LENGTH_SHORT).show();
                             fUser = mAuth.getCurrentUser();
+
                             User user = new User();
                             user.user_id = fUser.getUid();
                             user.token = FirebaseInstanceId.getInstance().getToken();
@@ -148,10 +150,14 @@ public class SigninActivity extends AppCompatActivity {
                             user.profile_path = photo_path;
 
                             checkUser(user);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
                             // ----- For Test -----
-                            Intent intent = new Intent(SigninActivity.this, HomeActivity.class);
-                            SigninActivity.this.startActivity(intent);
-                            finish();
+//                            Intent intent = new Intent(SigninActivity.this, HomeActivity.class);
+//                            SigninActivity.this.startActivity(intent);
+//                            finish();
                             // --------------------
 
                         }
@@ -167,6 +173,10 @@ public class SigninActivity extends AppCompatActivity {
     }
 
     DatabaseReference userRef;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
     private void checkUser(final User user) {
         final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("user");
         userRef.child(user.user_id).addListenerForSingleValueEvent(new ValueEventListener() {

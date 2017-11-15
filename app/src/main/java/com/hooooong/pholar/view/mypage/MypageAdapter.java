@@ -3,6 +3,7 @@ package com.hooooong.pholar.view.mypage;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +23,11 @@ import java.util.Map;
  * Created by quf93 on 2017-11-09.
  */
 
+<<<<<<< HEAD
 public class MypageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder > {
+=======
+public class MypageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
 
     Context context;
     public MypageAdapter(Context context) {
@@ -32,16 +37,40 @@ public class MypageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = null;
+<<<<<<< HEAD
         if(viewType == NO_ITEM)
             view = LayoutInflater.from(context).inflate(R.layout.item_no_post, parent, false);
         else
             view = LayoutInflater.from(context).inflate(R.layout.item_mypage, parent, false);
 
         return new MypageHolder(view);
+=======
+        if(viewType == NO_ITEM) {
+            view = LayoutInflater.from(context).inflate(R.layout.item_no_post, parent, false);
+            return new NoPostHolder(view);
+        }
+        else {
+            view = LayoutInflater.from(context).inflate(R.layout.item_mypage, parent, false);
+            return new MypageHolder(view);
+        }
+
+
     }
 
     private final int NO_ITEM = 174;
     @Override
+    public int getItemViewType(int position) {
+        if(map.size() == 0) {
+
+            return NO_ITEM;
+        }
+        return super.getItemViewType(position);
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
+    }
+
+    private final int NO_ITEM = 174;
+    @Override
+<<<<<<< HEAD
     public int getItemViewType(int position) {
         if(keys == null  && keys.length == 0) {
             return NO_ITEM;
@@ -50,6 +79,8 @@ public class MypageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder 
     }
 
     @Override
+=======
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if(holder instanceof MypageHolder) {
             if (keys != null && keys.length != 0) {
@@ -67,7 +98,10 @@ public class MypageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder 
 
     @Override
     public int getItemCount() {
-        return map.size();
+        if(map.size() == 0)
+            return  1;
+        else
+            return map.size();
         // map.size();
     }
 
@@ -109,4 +143,8 @@ public class MypageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder 
             super(itemView);
         }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986

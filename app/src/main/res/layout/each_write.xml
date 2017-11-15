@@ -178,14 +178,13 @@
 
         <LinearLayout
             android:id="@+id/likeLayout"
-            android:layout_width="65dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginStart="8dp"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginLeft="8dp">
+            android:layout_marginLeft="5dp">
 
             <ImageView
                 android:id="@+id/imgLike"
@@ -218,7 +217,7 @@
 
         <LinearLayout
             android:id="@+id/commentLayout"
-            android:layout_width="65dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -267,6 +266,6 @@
             app:layout_constraintVertical_bias="0.0"
             app:srcCompat="@drawable/ic_share"
             android:layout_marginRight="8dp"
-            android:visibility="gone"/>
+            android:visibility="visible"/>
     </android.support.constraint.ConstraintLayout>
 </android.support.constraint.ConstraintLayout>

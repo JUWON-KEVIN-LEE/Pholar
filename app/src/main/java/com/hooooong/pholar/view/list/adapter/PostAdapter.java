@@ -18,14 +18,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.hooooong.pholar.R;
 import com.hooooong.pholar.dao.PostDAO;
 import com.hooooong.pholar.model.Comment;
+import com.hooooong.pholar.model.Const;
 import com.hooooong.pholar.model.Photo;
 import com.hooooong.pholar.model.Post;
 import com.hooooong.pholar.model.User;
 import com.hooooong.pholar.util.DateUtil;
+import com.hooooong.pholar.view.comment.CommentActivity;
 import com.hooooong.pholar.view.custom.MoreTextView;
 import com.hooooong.pholar.view.home.DetailActivity;
 import com.matthewtamlin.sliding_intro_screen_library.DotIndicator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,47 +38,120 @@ import de.hdodenhof.circleimageview.CircleImageView;
  * Created by Heepie on 2017. 11. 7..
  */
 
-public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
-    private final String TAG = getClass().getSimpleName();
+public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int TYPE_HEADER = 0;
+    private static final int TYPE_ITEM = 1;
 
     private Context context;
     private List<Post> postList;
+
+    public PostAdapter(Context context) {
+        this.context = context;
+    }
 
     public void setDataAndRefresh(List<Post> data) {
         this.postList = data;
         notifyDataSetChanged();
     }
 
-
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.each_write, parent, false);
-        context = parent.getContext();
-        return new ViewHolder(view);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == TYPE_ITEM) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.each_write, parent, false);
+            //inflate your layout and pass it to view holder
+            return new VHItem(view);
+        } else if (viewType == TYPE_HEADER) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.each_new_post, parent, false);
+            return new VHHeader(view);
+        }
+        throw new RuntimeException("there is no type that matches the type " + viewType + " + make sure your using types correctly");
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position) {
-        Post post = postList.get(position);
-        viewHolder.setPostId(post.post_id);
-        viewHolder.setTextContent(post.post_content);
-        viewHolder.setTextPostDate(post.date);
-        viewHolder.setUser(post.user);
-        viewHolder.setLike(post.like);
-        viewHolder.setComment(post.getComment());
-        viewHolder.setViewPager(post.getPhoto());
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
+        if (viewHolder instanceof VHItem) {
+            Post post = getItem(position);
+            ((VHItem)viewHolder).setPostId(post.post_id);
+            ((VHItem)viewHolder).setTextContent(post.post_content);
+            ((VHItem)viewHolder).setTextPostDate(post.date);
+            ((VHItem)viewHolder).setUser(post.user);
+            ((VHItem)viewHolder).setLike(post.like);
+            ((VHItem)viewHolder).setComment(post.getComment());
+            ((VHItem)viewHolder).setViewPager(post.getPhoto());
+            //cast holder to VHItem and set data
+        } else if (viewHolder instanceof VHHeader) {
+            //cast holder to VHHeader and set data for header.
+            ((VHHeader)viewHolder).setNewPostAdapter(postList);
+        }
     }
 
     @Override
     public int getItemCount() {
         if (postList == null)
             return 0;
-        return postList.size();
+        return postList.size()+1;
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private View currentView;
+    @Override
+    public int getItemViewType(int position) {
+        if (isPositionHeader(position))
+            return TYPE_HEADER;
+
+        return TYPE_ITEM;
+    }
+
+    private Post getItem(int position) {
+        return postList.get(position - 1);
+    }
+
+    private boolean isPositionHeader(int position) {
+        return position == 0;
+    }
+
+    class VHHeader extends RecyclerView.ViewHolder{
+
+        private ViewPager newPostViewPager;
+        private NewPostAdapter newPostAdapter;
+
+        public VHHeader(View itemView) {
+            super(itemView);
+            newPostViewPager = itemView.findViewById(R.id.newWriteViewPager);
+            newPostViewPager.setClipToPadding(false);
+            newPostViewPager.setPadding(200, 40, 200, 0);
+            newPostViewPager.setPageMargin(100);
+
+        }
+
+        public void setNewPostAdapter(List<Post> data) {
+            newPostAdapter = new NewPostAdapter(context, data);
+            newPostViewPager.setAdapter(newPostAdapter);
+            newPostViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+                    if (position < Const.NEW_PHOTO_COUNT)        //1번째 아이템에서 마지막 아이템으로 이동하면
+                        newPostViewPager.setCurrentItem(position + Const.NEW_PHOTO_COUNT, false); //이동 애니메이션을 제거 해야 한다
+                    else if (position >= Const.NEW_PHOTO_COUNT * 2)     //마지막 아이템에서 1번째 아이템으로 이동하면
+                        newPostViewPager.setCurrentItem(position - Const.NEW_PHOTO_COUNT, false);
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+
+                }
+            });
+
+            newPostViewPager.setCurrentItem(Const.NEW_PHOTO_COUNT);
+        }
+    }
+
+    class VHItem extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private String post_id;
         private MoreTextView textContent;
@@ -94,15 +170,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         private TextView textCommentCount;
         private ImageView imgShare;
         private PostPhotoAdapter postPhotoAdapter;
-
+        private List<Comment> commentList;
 
         private ViewPager viewPager;
         private DotIndicator indicator;
 
 
-        public ViewHolder(final View itemView) {
+        public VHItem(final View itemView) {
             super(itemView);
-            currentView = itemView;
             textPostWriter = itemView.findViewById(R.id.textPostWriter);
             textPostDate = itemView.findViewById(R.id.textPostDate);
             imgProfile = itemView.findViewById(R.id.imgProfile);
@@ -126,8 +201,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             imgLike.setOnClickListener(this);
             imgComment.setOnClickListener(this);
             imgShare.setOnClickListener(this);
-            viewPager.setOnClickListener(this);
-
         }
 
         void setPostId(String post_id) {
@@ -160,6 +233,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
 
         void setComment(List<Comment> commentList) {
+            this.commentList = commentList;
             if (commentList == null || commentList.size() == 0) {
                 textCommentCount.setVisibility(View.INVISIBLE);
             } else {
@@ -169,6 +243,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
 
         void setLike(Map<String, Boolean> likeList) {
+
             if (likeList == null || likeList.size() == 0) {
                 // Like 가 아예 없으면
 
@@ -188,15 +263,26 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 }
             }
         }
+        View.OnClickListener o = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, DetailActivity.class);
+                intent.putExtra("post_id",post_id);
+                context.startActivity(intent);
+            }
+        };
 
         void setViewPager(List<Photo> photoList) {
-            postPhotoAdapter = new PostPhotoAdapter(context, photoList);
+
+            postPhotoAdapter = new PostPhotoAdapter(context, photoList, o);
             viewPager.setAdapter(postPhotoAdapter);
+
             if (photoList.size() == 1) {
                 indicator.setVisibility(View.GONE);
             } else {
                 indicator.setVisibility(View.VISIBLE);
                 indicator.setNumberOfItems(photoList.size());
+                indicator.setSelectedItem(0 ,true);
                 viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                     @Override
                     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -233,14 +319,34 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                     PostDAO.getInstance().onLikeClick(post_id, FirebaseAuth.getInstance().getCurrentUser());
                     break;
                 case R.id.imgComment:
+
+                    Intent commentIntent = new Intent(context, CommentActivity.class);
+                    commentIntent.putParcelableArrayListExtra("commentList", new ArrayList<Comment>(commentList));
+                    commentIntent.putExtra("post_id", post_id);
+                    context.startActivity(commentIntent);
+
                     break;
                 case R.id.imgShare:
+<<<<<<< HEAD
                     Log.e("heepie2", "Clicked");
 //                    Intent intent = new Intent(context, DetailActivity.class);
 //                    intent.putExtra("post_id", post_id);
 //                    context.startActivity(intent);
+=======
+                    Intent shareIntent = new Intent(context, DetailActivity.class);
+                    shareIntent.putExtra("post_id", post_id);
+                    context.startActivity(shareIntent);
+                    break;
+
+                case R.id.imageLayout:
+                    Intent intent = new Intent(context, DetailActivity.class);
+                    intent.putExtra("post_id", post_id);
+                    context.startActivity(intent);
+>>>>>>> 87ccb01a15d14705ce56208c28883172229d5986
                     break;
             }
         }
     }
+
 }
+
