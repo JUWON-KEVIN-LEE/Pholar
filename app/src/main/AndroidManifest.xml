@@ -28,7 +28,13 @@
 
         <activity
             android:name=".view.home.HomeActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
         <activity
             android:name=".view.gallery.GalleryActivity"
             android:screenOrientation="portrait" />
@@ -41,11 +47,7 @@
             android:theme="@style/WriteTheme" />
         <activity android:name=".view.comment.CommentActivity"/>
         <activity android:name=".view.sign.SplashActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <service
             android:name=".noti.MyFirebaseMessagingService">

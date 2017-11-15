@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -219,6 +220,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         @Override
         public void onClick(View view) {
             switch (view.getId()) {
+                case R.id.imageLayout:
+                    Intent intent = new Intent(context, DetailActivity.class);
+                    intent.putExtra("post_id", post_id);
+                    context.startActivity(intent);
+                    break;
                 case R.id.imgFollow:
                     break;
                 case R.id.imgOption:
@@ -230,9 +236,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                     break;
                 case R.id.imgShare:
                     Log.e("heepie2", "Clicked");
-                    Intent intent = new Intent(context, DetailActivity.class);
-                    intent.putExtra("post_id", post_id);
-                    context.startActivity(intent);
+//                    Intent intent = new Intent(context, DetailActivity.class);
+//                    intent.putExtra("post_id", post_id);
+//                    context.startActivity(intent);
                     break;
             }
         }

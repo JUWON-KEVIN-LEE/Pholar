@@ -1,13 +1,10 @@
 package com.hooooong.pholar.view.sign;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -27,8 +24,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.UserInfo;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -45,8 +40,7 @@ public class SigninActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseUser fUser;
     public final int RC_SIGN_IN = 12;
-    private SharedPreferences sp;
-    private SharedPreferences.Editor editor;
+    
     ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,8 +147,7 @@ public class SigninActivity extends AppCompatActivity {
                             user.email = email;
                             user.profile_path = photo_path;
 
-                            userRef.child(user.user_id).setValue(user);
-
+                            checkUser(user);
                             // ----- For Test -----
                             Intent intent = new Intent(SigninActivity.this, HomeActivity.class);
                             SigninActivity.this.startActivity(intent);
@@ -172,31 +165,20 @@ public class SigninActivity extends AppCompatActivity {
                     }
                 });
     }
+
     DatabaseReference userRef;
-    private void checkUser(final FirebaseUser fUser) {
+    private void checkUser(final User user) {
         final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("user");
-        userRef.child(fUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        userRef.child(user.user_id).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getChildrenCount() == 0) {
-                    User user = new User();
-                    user.user_id = fUser.getUid();
-                    user.email = fUser.getEmail();
-
-                    userRef.child(fUser.getUid()).setValue(user);
+                    userRef.child(user.user_id).setValue(user);
                     Intent intent = new Intent(SigninActivity.this, HomeActivity.class);
                     startActivity(intent);
                 } else {
-                    String nickname = "";
-                    for (DataSnapshot item : dataSnapshot.getChildren()) {
-                        if ("nickname".equals(item.getKey())) {
-                            nickname = (String) item.getValue();
-                        }
-                    }
                     Intent intent = new Intent(SigninActivity.this, HomeActivity.class);
                     startActivity(intent);
-
-
                 }
                 finish();
             }

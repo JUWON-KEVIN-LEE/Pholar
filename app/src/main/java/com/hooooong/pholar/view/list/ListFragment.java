@@ -35,7 +35,6 @@ public class ListFragment extends Fragment implements PostDAO.ICallback {
     private PostAdapter postAdapter;
     private Context context;
 
-
     public ListFragment() {
         // Required empty public constructor
     }
